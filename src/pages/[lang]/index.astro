@@ -1,0 +1,138 @@
+---
+/**
+ * 홈 = 프로젝트 목록
+ * - 필터: ?category=<키>  (예: /ko/?category=residential)
+ * - 정렬: ?sort=asc (오래된순). 기본은 최신순
+ */
+import ProjectCard from '@/components/ProjectCard.astro';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import type { Lang } from '@/i18n/ui';
+import { langPaths, useTranslations } from '@/i18n/utils';
+import { categoryLabel, getVisibleProjects, usedCategories } from '@/lib/projects';
+
+export function getStaticPaths() {
+  return langPaths();
+}
+
+const lang = Astro.params.lang as Lang;
+const t = useTranslations(lang);
+const projects = await getVisibleProjects(lang);
+const cats = usedCategories(projects);
+---
+
+<BaseLayout lang={lang} route="">
+  <div class="container">
+    <div class="toolbar">
+      <h1 class="visually-hidden">{t('list.title')}</h1>
+      <nav class="filters" aria-label={t('list.filterLabel')}>
+        <ul role="list">
+          <li>
+            <a href="./" data-filter="" aria-current="true">
+              {t('list.all')}<sup class="tabular">{projects.length}</sup>
+            </a>
+          </li>
+          {
+            cats.map(({ key, count }) => (
+              <li>
+                <a href={`?category=${key}`} data-filter={key}>
+                  {categoryLabel(key, lang)}
+                  <sup class="tabular">{count}</sup>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+      <div class="sort" role="group" aria-label={t('list.sortLabel')}>
+        <button type="button" data-sort="desc" aria-pressed="true">{t('list.sortDesc')}</button>
+        <span aria-hidden="true">·</span>
+        <button type="button" data-sort="asc" aria-pressed="false">{t('list.sortAsc')}</button>
+      </div>
+    </div>
+
+    <p class="status visually-hidden" aria-live="polite" data-status></p>
+
+    <ul role="list" class="project-grid" data-grid>
+      {projects.map((project, index) => <ProjectCard project={project} index={index} />)}
+    </ul>
+    <p class="empty" data-empty hidden>{t('list.empty')}</p>
+  </div>
+</BaseLayout>
+
+<script>
+  import { initProjectFilter } from '@/scripts/filter';
+  initProjectFilter();
+</script>
+
+<style>
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-4) var(--space-6);
+    padding-block: var(--space-6) var(--space-6);
+  }
+  .filters ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    margin: 0;
+  }
+  .filters a,
+  .sort button {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--fg-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .filters a:hover,
+  .sort button:hover,
+  .filters a[aria-current='true'],
+  .sort button[aria-pressed='true'] {
+    color: var(--fg);
+  }
+  .filters a[aria-current='true'] {
+    text-decoration: underline;
+    text-underline-offset: 0.35em;
+  }
+  sup {
+    margin-left: 0.2em;
+    font-size: 0.7em;
+    vertical-align: super;
+    line-height: 0;
+  }
+  .sort {
+    display: flex;
+    gap: var(--space-2);
+    align-items: baseline;
+    color: var(--fg-muted);
+  }
+
+  .project-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--cols, 1), minmax(0, 1fr));
+    gap: var(--space-7) var(--col-gap);
+    margin: 0;
+  }
+  @media (min-width: 40rem) {
+    .project-grid {
+      --cols: 2;
+    }
+  }
+  @media (min-width: 68rem) {
+    .project-grid {
+      --cols: 3;
+    }
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .project-grid {
+      row-gap: var(--col-gap);
+    }
+  }
+  .empty {
+    padding-block: var(--space-9);
+    color: var(--fg-muted);
+  }
+</style>

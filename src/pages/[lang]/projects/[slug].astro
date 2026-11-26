@@ -1,0 +1,50 @@
+---
+/**
+ * 프로젝트 상세 페이지 — src/content/projects/<slug>/ 폴더마다 자동 생성됩니다.
+ * hidden 프로젝트도 페이지는 만들어지지만 목록·이전/다음·sitemap에서 빠지고 noindex가 붙습니다.
+ */
+import type { GetStaticPaths } from 'astro';
+import { render } from 'astro:content';
+import Diagram from '@/components/mdx/Diagram.astro';
+import Drawing from '@/components/mdx/Drawing.astro';
+import Gallery from '@/components/mdx/Gallery.astro';
+import Photo from '@/components/mdx/Photo.astro';
+import Video from '@/components/mdx/Video.astro';
+import { langs, type Lang } from '@/i18n/ui';
+import ProjectLayout from '@/layouts/ProjectLayout.astro';
+import { getAllProjects, type Project } from '@/lib/projects';
+
+export const getStaticPaths = (async () => {
+  const paths = [];
+  for (const lang of langs) {
+    const all = await getAllProjects(lang);
+    const visible = all.filter((p) => !p.data.hidden);
+    for (const project of all) {
+      const i = visible.findIndex((p) => p.slug === project.slug);
+      paths.push({
+        params: { lang, slug: project.slug },
+        props: {
+          project,
+          prev: i > 0 ? visible[i - 1] : undefined,
+          next: i >= 0 && i < visible.length - 1 ? visible[i + 1] : undefined,
+        },
+      });
+    }
+  }
+  return paths;
+}) satisfies GetStaticPaths;
+
+interface Props {
+  project: Project;
+  prev?: Project;
+  next?: Project;
+}
+
+const lang = Astro.params.lang as Lang;
+const { project, prev, next } = Astro.props;
+const { Content } = await render(project.body);
+---
+
+<ProjectLayout project={project} lang={lang} prev={prev} next={next}>
+  <Content components={{ Gallery, Photo, Drawing, Diagram, Video }} />
+</ProjectLayout>

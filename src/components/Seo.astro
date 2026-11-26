@@ -1,0 +1,70 @@
+---
+/**
+ * <head> 메타 태그: 제목, 설명, Open Graph(카톡·SNS 미리보기), hreflang, noindex
+ */
+import { site } from '@/config/site';
+import { languages, langs, type Lang } from '@/i18n/ui';
+import { absoluteUrl, localeUrl } from '@/lib/url';
+
+interface Props {
+  lang: Lang;
+  route: string;
+  title?: string;
+  description?: string;
+  /** OG 이미지 경로 (사이트 내부 경로 또는 절대 주소) */
+  image?: { src: string; width: number; height: number; alt: string };
+  type?: 'website' | 'article';
+  noindex?: boolean;
+  /** 대표 주소를 다른 언어로 지정할 때 (번역되지 않은 영문 페이지 → 한국어 원문) */
+  canonicalLang?: Lang;
+}
+
+const { lang, route, title, description, image, type = 'website', noindex = false, canonicalLang } =
+  Astro.props;
+
+const siteName = site.name[lang];
+const fullTitle = title ? `${title} — ${siteName}` : siteName;
+const desc = description ?? site.description[lang];
+const canonical = absoluteUrl(localeUrl(canonicalLang ?? lang, route), Astro.site);
+const pageUrl = absoluteUrl(localeUrl(lang, route), Astro.site);
+const imageUrl = image ? absoluteUrl(image.src, Astro.site) : undefined;
+---
+
+<title>{fullTitle}</title>
+<meta name="description" content={desc} />
+<link rel="canonical" href={canonical} />
+{noindex && <meta name="robots" content="noindex, nofollow" />}
+
+{
+  !noindex &&
+    langs.map((l) => (
+      <link rel="alternate" hreflang={languages[l].htmlLang} href={absoluteUrl(localeUrl(l, route), Astro.site)} />
+    ))
+}
+{!noindex && <link rel="alternate" hreflang="x-default" href={absoluteUrl(localeUrl('ko', route), Astro.site)} />}
+
+<meta property="og:type" content={type} />
+<meta property="og:site_name" content={siteName} />
+<meta property="og:title" content={title ?? siteName} />
+<meta property="og:description" content={desc} />
+<meta property="og:url" content={pageUrl} />
+<meta property="og:locale" content={languages[lang].ogLocale} />
+{
+  langs
+    .filter((l) => l !== lang)
+    .map((l) => <meta property="og:locale:alternate" content={languages[l].ogLocale} />)
+}
+{
+  image && imageUrl && (
+    <>
+      <meta property="og:image" content={imageUrl} />
+      <meta property="og:image:width" content={String(image.width)} />
+      <meta property="og:image:height" content={String(image.height)} />
+      <meta property="og:image:alt" content={image.alt} />
+    </>
+  )
+}
+<meta name="twitter:card" content={image ? 'summary_large_image' : 'summary'} />
+<meta name="twitter:title" content={title ?? siteName} />
+<meta name="twitter:description" content={desc} />
+{imageUrl && <meta name="twitter:image" content={imageUrl} />}

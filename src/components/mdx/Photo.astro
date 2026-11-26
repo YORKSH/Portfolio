@@ -1,0 +1,45 @@
+---
+/**
+ * 사진 한 장. <Gallery> 안에서 쓰거나 단독으로 씁니다.
+ *
+ *   <Photo src="./exterior.jpg" alt="남측 전경" caption="남측 전경, 2025" />
+ *   <Photo src="./detail.jpg" span={2} />      갤러리에서 2칸 차지
+ *   <Photo src="./sketch.jpg" size="text" />   본문 폭으로
+ */
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets';
+import { assertImage, lightboxImage } from '@/lib/media';
+
+interface Props {
+  src: ImageMetadata;
+  alt?: string;
+  caption?: string;
+  span?: number;
+  size?: 'full' | 'text';
+}
+
+const { src, alt, caption, span, size = 'full' } = Astro.props;
+assertImage(src, 'Photo');
+const large = await lightboxImage(src);
+const altText = alt ?? caption ?? '';
+---
+
+<figure class:list={['photo', 'media-block', `size-${size}`]} style={span ? `--span:${span}` : undefined}>
+  <a
+    class="zoomable"
+    href={large.href}
+    data-pswp-width={large.width}
+    data-pswp-height={large.height}
+    data-caption={caption}
+  >
+    <Image
+      src={src}
+      alt={altText}
+      widths={[480, 800, 1200, 1600, 2400]}
+      sizes="auto, (min-width: 1100px) 66vw, 100vw"
+      format="webp"
+      loading="lazy"
+    />
+  </a>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

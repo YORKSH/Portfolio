@@ -1,0 +1,25 @@
+---
+/** 사이트 첫 주소(/)는 기본 언어(한국어) 목록으로 이동합니다. */
+import { defaultLang } from '@/i18n/ui';
+import { localeUrl } from '@/lib/url';
+
+const target = localeUrl(defaultLang);
+---
+
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <meta http-equiv="refresh" content={`0; url=${target}`} />
+    <link rel="canonical" href={new URL(target, Astro.site).href} />
+    <title>Redirecting…</title>
+    <script is:inline define:vars={{ target }}>
+      window.location.replace(target + window.location.search + window.location.hash);
+    </script>
+  </head>
+  <body>
+    <a href={target}>{target}</a>
+  </body>
+</html>

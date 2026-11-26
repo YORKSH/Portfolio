@@ -1,0 +1,76 @@
+---
+/**
+ * 동영상. 용량 문제로 YouTube/Vimeo 임베드를 기본으로 쓰고,
+ * 짧은 클립(10MB 이하 권장)만 프로젝트 폴더에 mp4로 넣으세요.
+ *
+ *   <Video youtube="https://youtu.be/VIDEO_ID" caption="워크스루" />
+ *   <Video vimeo="https://vimeo.com/123456789" />
+ *   <Video src="./model-rotate.mp4" poster="./cover.jpg" autoplay />   자동재생(무음·반복)
+ *   <Video src="./interview.mp4" />                                     컨트롤 표시
+ *
+ * ratio: 화면 비율 (기본 "16/9"). 세로 영상은 "9/16"
+ */
+import type { ImageMetadata } from 'astro';
+import { getImage } from 'astro:assets';
+import { vimeoId, youtubeId } from '@/lib/media';
+
+interface Props {
+  youtube?: string;
+  vimeo?: string;
+  /** 로컬 영상 (같은 폴더의 "./파일.mp4") */
+  src?: string;
+  poster?: ImageMetadata;
+  caption?: string;
+  title?: string;
+  ratio?: string;
+  /** 로컬 영상 자동재생 (무음·반복·컨트롤 숨김) */
+  autoplay?: boolean;
+  /** YouTube 시작 시간(초) */
+  start?: number;
+  size?: 'full' | 'text';
+}
+
+const { youtube, vimeo, src, poster, caption, title, ratio = '16/9', autoplay = false, start, size = 'full' } =
+  Astro.props;
+
+if (!youtube && !vimeo && !src) {
+  throw new Error('[Video] youtube, vimeo, src 중 하나를 지정하세요.');
+}
+
+let embed: string | undefined;
+if (youtube) {
+  const params = new URLSearchParams({ rel: '0', modestbranding: '1', playsinline: '1' });
+  if (start) params.set('start', String(start));
+  embed = `https://www.youtube-nocookie.com/embed/${youtubeId(youtube)}?${params}`;
+} else if (vimeo) {
+  const { id, hash } = vimeoId(vimeo);
+  const params = new URLSearchParams({ dnt: '1', title: '0', byline: '0', portrait: '0' });
+  if (hash) params.set('h', hash);
+  embed = `https://player.vimeo.com/video/${id}?${params}`;
+}
+
+const posterUrl = poster ? (await getImage({ src: poster, width: 1600, format: 'webp' })).src : undefined;
+const label = title ?? caption ?? 'Video';
+---
+
+<figure class:list={['video', 'media-block', `size-${size}`]}>
+  <div class="video-frame" style={`aspect-ratio:${ratio}`}>
+    {
+      embed ? (
+        <iframe
+          src={embed}
+          title={label}
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+          allowfullscreen
+          referrerpolicy="strict-origin-when-cross-origin"
+        />
+      ) : autoplay ? (
+        <video src={src} poster={posterUrl} autoplay muted loop playsinline preload="metadata" aria-label={label} />
+      ) : (
+        <video src={src} poster={posterUrl} controls playsinline preload="metadata" aria-label={label} />
+      )
+    }
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

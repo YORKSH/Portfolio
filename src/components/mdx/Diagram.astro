@@ -1,0 +1,56 @@
+---
+/**
+ * 캡션이 있는 다이어그램. 데스크톱에서는 캡션이 왼쪽, 이미지가 오른쪽에 놓입니다.
+ *
+ *   <Diagram src="./massing.png" caption="매스 전개" label="Diagram 01">
+ *     경사를 따라 세 개의 매스를 엇갈려 배치했다.   ← (선택) 설명 문장
+ *   </Diagram>
+ */
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets';
+import { assertImage, lightboxImage } from '@/lib/media';
+
+interface Props {
+  src: ImageMetadata;
+  caption: string;
+  alt?: string;
+  label?: string;
+}
+
+const { src, caption, alt, label } = Astro.props;
+assertImage(src, 'Diagram');
+const large = await lightboxImage(src, 3000);
+const hasDescription = Astro.slots.has('default');
+---
+
+<figure class="diagram media-block" data-lightbox>
+  <figcaption class="diagram-caption">
+    {label && <span class="eyebrow">{label}</span>}
+    <span class="diagram-title">{caption}</span>
+    {
+      hasDescription && (
+        <div class="diagram-desc">
+          <slot />
+        </div>
+      )
+    }
+  </figcaption>
+  <div class="diagram-media">
+    <a
+      class="zoomable"
+      href={large.href}
+      data-pswp-width={large.width}
+      data-pswp-height={large.height}
+      data-caption={caption}
+    >
+      <Image
+        src={src}
+        alt={alt ?? caption}
+        widths={[640, 960, 1280, 1600, 2000]}
+        sizes="auto, (min-width: 960px) 62vw, 100vw"
+        format="webp"
+        loading="lazy"
+      />
+    </a>
+  </div>
+</figure>

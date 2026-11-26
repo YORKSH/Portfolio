@@ -1,0 +1,145 @@
+---
+/**
+ * 프로젝트 상세 페이지 레이아웃
+ * 제목 → 정보(연도·위치·카테고리·유형) + 요약 → 대표 이미지 → 본문 → 이전/다음
+ */
+import '@/styles/prose.css';
+
+import { getImage, Image } from 'astro:assets';
+import ProjectMeta from '@/components/ProjectMeta.astro';
+import ProjectNav from '@/components/ProjectNav.astro';
+import type { Lang } from '@/i18n/ui';
+import { useTranslations } from '@/i18n/utils';
+import type { Project } from '@/lib/projects';
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  project: Project;
+  lang: Lang;
+  prev?: Project;
+  next?: Project;
+}
+
+const { project, lang, prev, next } = Astro.props;
+const t = useTranslations(lang);
+const { slug, data } = project;
+const fallbackLang = project.translated ? undefined : 'ko';
+
+const og = await getImage({ src: data.cover, width: 1200, height: 630, fit: 'cover', format: 'jpg' });
+---
+
+<BaseLayout
+  lang={lang}
+  route={`projects/${slug}/`}
+  title={project.title}
+  description={project.summary}
+  bgColor={data.bgColor}
+  ogImage={{ src: og.src, width: 1200, height: 630, alt: project.coverAlt }}
+  ogType="article"
+  noindex={data.hidden}
+  canonicalLang={project.translated ? undefined : 'ko'}
+>
+  <article class="project">
+    <header class="container project-header">
+      <h1 class="project-title" lang={fallbackLang}>{project.title}</h1>
+      <div class="intro grid-12">
+        <div class="intro-meta">
+          <ProjectMeta project={project} lang={lang} />
+        </div>
+        <p class="summary" lang={fallbackLang}>{project.summary}</p>
+      </div>
+    </header>
+
+    <div class="container">
+      <div class="cover" style={`view-transition-name: cover-${slug}; view-transition-class: cover;`}>
+        <Image
+          src={data.cover}
+          alt={project.coverAlt}
+          widths={[640, 960, 1280, 1600, 2000, 2560]}
+          sizes="(min-width: 1520px) 1440px, 100vw"
+          format="webp"
+          loading="eager"
+          fetchpriority="high"
+        />
+      </div>
+    </div>
+
+    {
+      !project.translated && (
+        <div class="container">
+          <p class="notice">{t('project.untranslated')}</p>
+        </div>
+      )
+    }
+
+    <div class="container">
+      <div class="prose grid-12" lang={fallbackLang}>
+        <slot />
+      </div>
+    </div>
+
+    <ProjectNav lang={lang} prev={prev} next={next} />
+  </article>
+</BaseLayout>
+
+<script>
+  import { initLightbox } from '@/scripts/lightbox';
+  initLightbox();
+</script>
+
+<style>
+  .project-header {
+    padding-top: var(--space-7);
+  }
+  .project-title {
+    max-width: 18ch;
+    font-size: var(--text-display);
+    font-weight: var(--weight-semibold);
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+  }
+  .intro {
+    row-gap: var(--space-6);
+    margin-top: var(--space-7);
+  }
+  .intro-meta,
+  .summary {
+    grid-column: 1 / -1;
+  }
+  .summary {
+    max-width: var(--measure);
+    font-size: var(--text-lg);
+    line-height: var(--leading-normal);
+    letter-spacing: -0.01em;
+  }
+  @media (min-width: 60rem) {
+    .intro-meta {
+      grid-column: 1 / span 4;
+    }
+    .summary {
+      grid-column: 5 / span 7;
+    }
+  }
+
+  .cover {
+    margin-top: var(--space-8);
+    overflow: hidden;
+  }
+  .cover :global(img) {
+    width: 100%;
+    max-height: 88vh;
+    object-fit: cover;
+  }
+
+  .notice {
+    margin-top: var(--space-6);
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--text-sm);
+    border: 1px solid var(--line);
+    color: var(--fg-muted);
+  }
+
+  .prose {
+    margin-top: var(--space-8);
+  }
+</style>

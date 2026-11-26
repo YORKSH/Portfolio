@@ -1,0 +1,108 @@
+---
+/**
+ * 모든 페이지의 공통 레이아웃
+ * - bgColor를 받으면 그 색을 배경으로, 글자색·점 색을 자동 계산해 적용합니다.
+ */
+import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
+import '@/styles/global.css';
+
+import { getImage } from 'astro:assets';
+import Footer from '@/components/Footer.astro';
+import Header from '@/components/Header.astro';
+import Seo from '@/components/Seo.astro';
+import { languages, type Lang } from '@/i18n/ui';
+import { useTranslations } from '@/i18n/utils';
+import { DEFAULT_BG, themeFromBg, themeStyle } from '@/lib/color';
+import { getVisibleProjects } from '@/lib/projects';
+import { withBase } from '@/lib/url';
+
+interface Props {
+  lang: Lang;
+  /** 언어를 뺀 페이지 경로. 예: '' (홈), 'about/', 'projects/my-project/' */
+  route: string;
+  title?: string;
+  description?: string;
+  /** 페이지 배경색 (HEX). 없으면 흰색 */
+  bgColor?: string;
+  /** 공유 미리보기 이미지. 없으면 최신 프로젝트의 대표 이미지 */
+  ogImage?: { src: string; width: number; height: number; alt: string };
+  ogType?: 'website' | 'article';
+  noindex?: boolean;
+  canonicalLang?: Lang;
+  /** 헤더 메뉴 강조용 경로 (기본: route). 404처럼 어느 메뉴도 강조하지 않을 때 'none' */
+  navRoute?: string;
+}
+
+const { lang, route, title, description, bgColor, ogImage, ogType, noindex, canonicalLang, navRoute } =
+  Astro.props;
+const t = useTranslations(lang);
+const theme = themeFromBg(bgColor ?? DEFAULT_BG);
+
+let image = ogImage;
+if (!image) {
+  const [latest] = await getVisibleProjects(lang);
+  if (latest) {
+    const og = await getImage({ src: latest.data.cover, width: 1200, height: 630, fit: 'cover', format: 'jpg' });
+    image = { src: og.src, width: 1200, height: 630, alt: latest.coverAlt };
+  }
+}
+
+const mediaLabels = {
+  close: t('media.close'),
+  prev: t('media.prev'),
+  next: t('media.next'),
+  zoom: t('media.zoom'),
+};
+---
+
+<!doctype html>
+<html
+  lang={languages[lang].htmlLang}
+  style={themeStyle(theme)}
+  data-theme={theme.isDark ? 'dark' : 'light'}
+>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content={theme.bg} />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="icon" type="image/svg+xml" href={withBase('favicon.svg')} />
+    <Seo
+      lang={lang}
+      route={route}
+      title={title}
+      description={description}
+      image={image}
+      type={ogType}
+      noindex={noindex}
+      canonicalLang={canonicalLang}
+    />
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">{t('nav.skip')}</a>
+    <Header lang={lang} route={route} navRoute={navRoute} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer lang={lang} />
+    <script type="application/json" id="media-labels" set:html={JSON.stringify(mediaLabels)} />
+  </body>
+</html>
+
+<style>
+  .skip-link {
+    position: absolute;
+    left: var(--gutter);
+    top: -100px;
+    z-index: 100;
+    padding: var(--space-2) var(--space-4);
+    background: var(--fg);
+    color: var(--page-bg);
+    text-decoration: none;
+    font-size: var(--text-sm);
+  }
+  .skip-link:focus {
+    top: var(--space-3);
+  }
+</style>

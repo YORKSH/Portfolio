@@ -1,0 +1,105 @@
+---
+import { site } from '@/config/site';
+import type { Lang } from '@/i18n/ui';
+import { useTranslations } from '@/i18n/utils';
+import { localeUrl } from '@/lib/url';
+import LangSwitch from './LangSwitch.astro';
+
+interface Props {
+  lang: Lang;
+  route: string;
+  navRoute?: string;
+}
+const { lang, route, navRoute = route } = Astro.props;
+const t = useTranslations(lang);
+
+const nav = [
+  { key: 'projects', label: t('nav.projects'), route: '', match: (r: string) => r === '' || r.startsWith('projects/') },
+  { key: 'about', label: t('nav.about'), route: 'about/', match: (r: string) => r.startsWith('about') },
+  { key: 'contact', label: t('nav.contact'), route: 'contact/', match: (r: string) => r.startsWith('contact') },
+];
+---
+
+<header class="site-header">
+  <div class="container inner">
+    <a class="brand" href={localeUrl(lang)}>{site.name[lang]}</a>
+    <nav class="nav" aria-label="Main">
+      <ul role="list">
+        {
+          nav.map((item) => (
+            <li>
+              <a href={localeUrl(lang, item.route)} aria-current={item.match(navRoute) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <LangSwitch lang={lang} route={route} />
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: relative;
+    z-index: 10;
+  }
+  .inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3) var(--space-6);
+    padding-block: var(--space-5);
+    min-height: var(--header-h);
+  }
+  .brand {
+    font-size: var(--text-md);
+    font-weight: var(--weight-semibold);
+    letter-spacing: -0.01em;
+    text-decoration: none;
+  }
+  .nav {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-5);
+  }
+  .nav ul {
+    display: flex;
+    gap: var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nav a:not([data-lang-switch]) {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    text-decoration: none;
+    color: var(--fg-muted);
+    transition: color 0.2s;
+  }
+  .nav a:hover,
+  .nav a[aria-current='page'] {
+    color: var(--fg);
+  }
+  .nav a[aria-current='page'] {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.35em;
+  }
+
+  @media (max-width: 30rem) {
+    .inner {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .nav {
+      width: 100%;
+      justify-content: space-between;
+    }
+    .nav ul {
+      gap: var(--space-4);
+    }
+  }
+</style>

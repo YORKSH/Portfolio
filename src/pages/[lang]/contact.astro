@@ -1,0 +1,158 @@
+---
+/**
+ * Contact — 이메일·SNS는 src/config/site.ts 에서 수정합니다.
+ */
+import { site } from '@/config/site';
+import type { Lang } from '@/i18n/ui';
+import { langPaths, useTranslations } from '@/i18n/utils';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+export function getStaticPaths() {
+  return langPaths();
+}
+
+const lang = Astro.params.lang as Lang;
+const t = useTranslations(lang);
+const note = site.contactNote[lang];
+---
+
+<BaseLayout lang={lang} route="contact/" title={t('contact.title')}>
+  <div class="container contact grid-12">
+    <h1 class="visually-hidden">{t('contact.title')}</h1>
+    <div class="main">
+      {note && <p class="note">{note}</p>}
+
+      <section class="block">
+        <h2 class="label">{t('contact.email')}</h2>
+        <div class="email-row">
+          <a class="email" href={`mailto:${site.email}`}>{site.email}</a>
+          <button
+            type="button"
+            class="copy"
+            data-copy={site.email}
+            data-label={t('contact.copy')}
+            data-done={t('contact.copied')}
+          >
+            {t('contact.copy')}
+          </button>
+        </div>
+      </section>
+
+      {
+        site.socials.length > 0 && (
+          <section class="block">
+            <h2 class="label">{t('contact.social')}</h2>
+            <ul role="list" class="socials">
+              {site.socials.map((s) => (
+                <li>
+                  <a href={s.url} target="_blank" rel="noopener noreferrer">
+                    <span class="social-name">{s.label}</span>
+                    {s.handle && <span class="handle">{s.handle}</span>}
+                    <span class="arrow" aria-hidden="true">
+                      ↗
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )
+      }
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('button[data-copy]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(btn.dataset.copy ?? '');
+        btn.textContent = btn.dataset.done ?? 'Copied';
+        setTimeout(() => (btn.textContent = btn.dataset.label ?? 'Copy'), 1800);
+      } catch {
+        window.location.href = `mailto:${btn.dataset.copy}`;
+      }
+    });
+  });
+</script>
+
+<style>
+  .contact {
+    padding-top: var(--space-7);
+  }
+  .main {
+    grid-column: 1 / -1;
+  }
+  @media (min-width: 60rem) {
+    .main {
+      grid-column: 5 / span 8;
+    }
+  }
+  .note {
+    max-width: var(--measure);
+    font-size: var(--text-lg);
+    line-height: var(--leading-normal);
+  }
+  .block {
+    margin-top: var(--space-8);
+  }
+  .label {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--fg-muted);
+    letter-spacing: 0.01em;
+  }
+  .email-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-3) var(--space-5);
+    margin-top: var(--space-3);
+  }
+  .email {
+    font-size: var(--text-xl);
+    font-weight: var(--weight-semibold);
+    letter-spacing: -0.03em;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+  .email:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+  }
+  .copy {
+    font-size: var(--text-sm);
+    color: var(--fg-muted);
+    border-bottom: 1px solid var(--line);
+  }
+  .copy:hover {
+    color: var(--fg);
+  }
+  .socials {
+    margin: var(--space-3) 0 0;
+    border-top: 1px solid var(--line);
+  }
+  .socials a {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: baseline;
+    gap: var(--space-4);
+    padding-block: var(--space-4);
+    border-bottom: 1px solid var(--line);
+    text-decoration: none;
+    font-size: var(--text-md);
+  }
+  .social-name {
+    font-weight: var(--weight-medium);
+  }
+  .handle {
+    color: var(--fg-muted);
+    font-size: var(--text-sm);
+  }
+  .arrow {
+    transition: transform 0.25s var(--ease);
+  }
+  .socials a:hover .arrow {
+    transform: translate(2px, -2px);
+  }
+</style>

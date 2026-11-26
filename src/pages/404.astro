@@ -1,0 +1,60 @@
+---
+/** 없는 주소로 접속했을 때 표시되는 페이지 (GitHub Pages가 자동으로 사용) */
+import { site } from '@/config/site';
+import { ui } from '@/i18n/ui';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { localeUrl } from '@/lib/url';
+---
+
+<BaseLayout lang="ko" route="" navRoute="none" title="404" noindex>
+  <div class="container nf">
+    <p class="code tabular">404</p>
+    <div class="cols">
+      <div>
+        <h1>{ui.ko['notFound.title']}</h1>
+        <p>{ui.ko['notFound.body']}</p>
+        <a href={localeUrl('ko')}>{ui.ko['notFound.home']} →</a>
+      </div>
+      <div lang="en">
+        <h2>{ui.en['notFound.title']}</h2>
+        <p>{ui.en['notFound.body']}</p>
+        <a href={localeUrl('en')}>{ui.en['notFound.home']} →</a>
+      </div>
+    </div>
+    <p class="visually-hidden">{site.name.ko}</p>
+  </div>
+</BaseLayout>
+
+<style>
+  .nf {
+    padding-block: var(--space-8);
+  }
+  .code {
+    font-size: var(--text-display);
+    font-weight: var(--weight-semibold);
+    letter-spacing: -0.04em;
+  }
+  .cols {
+    display: grid;
+    gap: var(--space-6);
+    margin-top: var(--space-6);
+  }
+  @media (min-width: 48rem) {
+    .cols {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  h1,
+  h2 {
+    font-size: var(--text-lg);
+  }
+  p {
+    margin-top: var(--space-2);
+    color: var(--fg-muted);
+  }
+  a {
+    display: inline-block;
+    margin-top: var(--space-4);
+    font-weight: var(--weight-medium);
+  }
+</style>

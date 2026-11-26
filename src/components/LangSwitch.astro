@@ -1,0 +1,76 @@
+---
+import { languages, langs, type Lang } from '@/i18n/ui';
+import { useTranslations } from '@/i18n/utils';
+import { localeUrl } from '@/lib/url';
+
+interface Props {
+  lang: Lang;
+  route: string;
+}
+const { lang, route } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<div class="lang-switch">
+  {
+    langs.map((l, i) => (
+      <>
+        {i > 0 && <span class="sep" aria-hidden="true">/</span>}
+        {l === lang ? (
+          <span class="current" aria-current="true">
+            {languages[l].short}
+          </span>
+        ) : (
+          <a
+            href={localeUrl(l, route)}
+            hreflang={languages[l].htmlLang}
+            lang={languages[l].htmlLang}
+            title={t('lang.switch')}
+            data-lang-switch
+          >
+            <span aria-hidden="true">{languages[l].short}</span>
+            <span class="visually-hidden">{languages[l].label}</span>
+          </a>
+        )}
+      </>
+    ))
+  }
+</div>
+
+<script>
+  // 목록 페이지의 필터(?category=...)를 유지한 채 언어를 바꿉니다.
+  function syncLangLinks() {
+    document.querySelectorAll<HTMLAnchorElement>('a[data-lang-switch]').forEach((a) => {
+      const url = new URL(a.href);
+      url.search = window.location.search;
+      a.href = url.toString();
+    });
+  }
+  syncLangLinks();
+  document.addEventListener('portfolio:querychange', syncLangLinks);
+</script>
+
+<style>
+  .lang-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    letter-spacing: 0.04em;
+  }
+  .current {
+    color: var(--fg);
+  }
+  .sep {
+    color: var(--fg-muted);
+  }
+  a {
+    color: var(--fg-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  a:hover {
+    color: var(--fg);
+  }
+</style>

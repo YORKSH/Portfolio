@@ -1,0 +1,66 @@
+/*
+ * 디자인 토큰 (CSS 변수)
+ * 사이트 전체의 색·여백·글자 크기·점 그리드를 여기서 조절합니다.
+ *
+ * 색상 변수(--page-bg, --fg, --fg-muted, --line, --dot-color, --surface)는
+ * 페이지마다 배경색(bgColor)으로부터 자동 계산되어 <html style="...">로 덮어씌워집니다.
+ * (계산 로직: src/lib/color.ts) 아래 값은 계산이 없을 때의 기본값입니다.
+ */
+:root {
+  /* ── 색 ───────────────────────────── */
+  --page-bg: #ffffff;
+  --fg: #141414;
+  --fg-muted: rgb(20 20 20 / 0.62);
+  --line: rgb(20 20 20 / 0.16);
+  --surface: #f6f6f6;
+
+  /* ── 점(dot) 그리드 배경 ───────────── */
+  --dot-color: #d9d9d9; /* 점 색 (상세 페이지는 배경색 기준 자동 조정) */
+  --dot-size: 1px; /* 점 반지름 */
+  --dot-gap: 22px; /* 점 간격 */
+
+  /* ── 글꼴 ─────────────────────────── */
+  /* 영문 글꼴을 바꾸려면 --font-latin만 바꾸세요. 한글은 Pretendard로 표시됩니다. */
+  --font-latin: 'Pretendard Variable';
+  --font-sans: var(--font-latin), 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont,
+    system-ui, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+
+  /* ── 글자 크기 (화면 폭에 따라 부드럽게 변화) ── */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-md: clamp(1.0625rem, 0.98rem + 0.3vw, 1.1875rem);
+  --text-lg: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --text-xl: clamp(1.75rem, 1.4rem + 1.4vw, 2.5rem);
+  --text-display: clamp(2.25rem, 1.5rem + 3.4vw, 4.75rem);
+
+  --leading-tight: 1.15;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.8;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  /* ── 여백 ─────────────────────────── */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4.5rem;
+  --space-9: 7rem;
+  --space-10: 10rem;
+
+  /* ── 레이아웃 ─────────────────────── */
+  --page-max: 1440px; /* 콘텐츠 최대 폭 */
+  --gutter: clamp(1rem, 0.5rem + 2.4vw, 2.5rem); /* 좌우 여백 */
+  --col-gap: clamp(1rem, 0.6rem + 1.5vw, 2rem); /* 그리드 간격 */
+  --measure: 40rem; /* 본문 글 한 줄 최대 폭 */
+  --header-h: 4.5rem;
+
+  /* ── 움직임 ───────────────────────── */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration: 0.45s;
+}

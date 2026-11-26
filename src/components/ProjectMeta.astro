@@ -1,0 +1,79 @@
+---
+import type { Lang } from '@/i18n/ui';
+import { useTranslations } from '@/i18n/utils';
+import { categoryLabel, typeLabel, type Project } from '@/lib/projects';
+import { localeUrl } from '@/lib/url';
+
+interface Props {
+  project: Project;
+  lang: Lang;
+}
+const { project, lang } = Astro.props;
+const t = useTranslations(lang);
+const { data } = project;
+const fallbackLang = project.translated ? undefined : 'ko';
+---
+
+<dl class="meta">
+  <div>
+    <dt>{t('project.year')}</dt>
+    <dd class="tabular">{data.year}</dd>
+  </div>
+  <div>
+    <dt>{t('project.location')}</dt>
+    <dd lang={project.location === data.location ? fallbackLang : undefined}>{project.location}</dd>
+  </div>
+  <div>
+    <dt>{t('project.category')}</dt>
+    <dd>
+      {
+        data.category.map((c, i) => (
+          <>
+            {i > 0 && ', '}
+            <a class="link-quiet" href={`${localeUrl(lang)}?category=${c}`}>
+              {categoryLabel(c, lang)}
+            </a>
+          </>
+        ))
+      }
+    </dd>
+  </div>
+  <div>
+    <dt>{t('project.type')}</dt>
+    <dd>{typeLabel(data.type, lang)}</dd>
+  </div>
+</dl>
+
+<style>
+  .meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4) var(--col-gap);
+    font-size: var(--text-sm);
+  }
+  .meta > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--line);
+  }
+  dt {
+    color: var(--fg-muted);
+  }
+  dd {
+    margin: 0;
+    font-weight: var(--weight-medium);
+  }
+  @media (min-width: 60rem) {
+    .meta {
+      grid-template-columns: 1fr;
+      gap: var(--space-3);
+    }
+    .meta > div {
+      display: grid;
+      grid-template-columns: 6.5rem 1fr;
+      gap: var(--space-3);
+    }
+  }
+</style>

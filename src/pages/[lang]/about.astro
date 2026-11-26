@@ -1,0 +1,180 @@
+---
+/**
+ * About / CV — 내용은 src/content/about/ko.md, en.md 에서 수정합니다.
+ */
+import { getEntry, render } from 'astro:content';
+import { Image } from 'astro:assets';
+import { site } from '@/config/site';
+import type { Lang } from '@/i18n/ui';
+import { langPaths, useTranslations } from '@/i18n/utils';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+export function getStaticPaths() {
+  return langPaths();
+}
+
+const lang = Astro.params.lang as Lang;
+const t = useTranslations(lang);
+const entry = (await getEntry('about', lang)) ?? (await getEntry('about', 'ko'));
+if (!entry) throw new Error('src/content/about/ko.md 파일이 필요합니다.');
+const { Content } = await render(entry);
+const { role, photo, sections, skills } = entry.data;
+const fallbackLang = entry.id !== lang ? entry.id : undefined;
+---
+
+<BaseLayout lang={lang} route="about/" title={t('about.title')}>
+  <div class="container about" lang={fallbackLang}>
+    <header class="about-head grid-12">
+      <div class="identity">
+        <h1 class="name">{site.name[lang]}</h1>
+        {role && <p class="role">{role}</p>}
+        {
+          photo && (
+            <Image src={photo} alt={site.name[lang]} widths={[320, 480, 640]} sizes="(min-width: 960px) 20vw, 50vw" format="webp" class="photo" />
+          )
+        }
+      </div>
+      <div class="intro">
+        <Content />
+      </div>
+    </header>
+
+    <div class="cv">
+      {
+        sections.map((section) => (
+          <section class="cv-section grid-12">
+            <h2 class="cv-title">{section.title}</h2>
+            <ul role="list" class="cv-list">
+              {section.items.map((item) => (
+                <li class="cv-item">
+                  <span class="period tabular">{item.period}</span>
+                  <span class="what">
+                    <span class="item-title">{item.title}</span>
+                    {item.detail && <span class="detail">{item.detail}</span>}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
+      }
+      {
+        skills.length > 0 && (
+          <section class="cv-section grid-12">
+            <h2 class="cv-title">{t('about.skills')}</h2>
+            <ul role="list" class="cv-list">
+              {skills.map((s) => (
+                <li class="cv-item">
+                  <span class="period">{s.group}</span>
+                  <span class="what">
+                    <span class="item-title">{s.items.join(', ')}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )
+      }
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .about {
+    padding-top: var(--space-7);
+  }
+  .about-head {
+    row-gap: var(--space-6);
+  }
+  .identity,
+  .intro {
+    grid-column: 1 / -1;
+  }
+  .name {
+    font-size: var(--text-xl);
+    letter-spacing: -0.03em;
+  }
+  .role {
+    margin-top: var(--space-2);
+    color: var(--fg-muted);
+  }
+  .identity :global(.photo) {
+    width: min(100%, 14rem);
+    margin-top: var(--space-5);
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+  }
+  .intro {
+    max-width: var(--measure);
+    font-size: var(--text-lg);
+    line-height: var(--leading-normal);
+    letter-spacing: -0.01em;
+  }
+  .intro :global(p + p) {
+    margin-top: var(--space-4);
+  }
+  .intro :global(a) {
+    text-decoration: underline;
+  }
+
+  .cv {
+    margin-top: var(--space-9);
+  }
+  .cv-section {
+    row-gap: var(--space-4);
+    padding-block: var(--space-5) var(--space-7);
+    border-top: 1px solid var(--line);
+  }
+  .cv-title {
+    grid-column: 1 / -1;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.02em;
+  }
+  .cv-list {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    margin: 0;
+  }
+  .cv-item {
+    display: grid;
+    grid-template-columns: minmax(6.5rem, 30%) 1fr;
+    gap: var(--col-gap);
+    font-size: var(--text-base);
+  }
+  .period {
+    color: var(--fg-muted);
+  }
+  .what {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+  .item-title {
+    font-weight: var(--weight-medium);
+  }
+  .detail {
+    color: var(--fg-muted);
+    font-size: var(--text-sm);
+  }
+
+  @media (min-width: 60rem) {
+    .identity {
+      grid-column: 1 / span 4;
+    }
+    .intro {
+      grid-column: 5 / span 7;
+    }
+    .cv-title {
+      grid-column: 1 / span 4;
+    }
+    .cv-list {
+      grid-column: 5 / span 8;
+    }
+    .cv-item {
+      grid-template-columns: 9rem 1fr;
+    }
+  }
+</style>

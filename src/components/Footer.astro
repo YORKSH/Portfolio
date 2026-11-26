@@ -1,0 +1,55 @@
+---
+import { site } from '@/config/site';
+import type { Lang } from '@/i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="inner">
+    <p class="copy">© {year} {site.name[lang]}</p>
+    <ul role="list" class="links">
+      <li><a class="link-quiet" href={`mailto:${site.email}`}>{site.email}</a></li>
+      {
+        site.socials.map((s) => (
+          <li>
+            <a class="link-quiet" href={s.url} target="_blank" rel="noopener noreferrer">
+              {s.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: var(--space-9);
+  }
+  .inner {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-3) var(--space-6);
+    padding-block: var(--space-6) var(--space-7);
+    border-top: 1px solid var(--line);
+    font-size: var(--text-sm);
+    color: var(--fg-muted);
+  }
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    margin: 0;
+  }
+  .links a {
+    color: inherit;
+  }
+</style>
